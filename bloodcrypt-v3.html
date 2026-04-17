@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLOODCRYPT // UNDERGROUND METAL</title>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Bebas+Neue&family=Share+Tech+Mono&family=Creepster&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#000;--deep:#060202;--panel:#0a0303;--edge:#1a0505;
+  --blood:#8b0000;--crimson:#bb0000;--gore:#e01010;--lava:#ff2200;
+  --bone:#c9b99a;--parchment:#9a8060;--ash:#554040;--rust:#6b2a00;
+  --glow1:rgba(187,0,0,0.8);--glow2:rgba(139,0,0,0.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;overflow-x:hidden;}
+body{
+  background:var(--void);color:var(--bone);
+  font-family:'Share Tech Mono',monospace;
+  min-height:100vh;
+  cursor:none;
+}
+
+/* CUSTOM CURSOR */
+#cursor{
+  position:fixed;width:20px;height:20px;pointer-events:none;z-index:99999;
+  transform:translate(-50%,-50%);
+  transition:transform 0.05s;
+}
+#cursor svg{width:100%;height:100%;}
+#cursor-trail{
+  position:fixed;width:8px;height:8px;border-radius:50%;
+  background:var(--gore);pointer-events:none;z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:left 0.12s ease,top 0.12s ease;
+  box-shadow:0 0 8px var(--crimson);
+}
+
+/* CANVAS BG */
+#bg-canvas{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:0.35;
+}
+
+/* SCANLINES */
+#scanlines{
+  position:fixed;inset:0;z-index:9997;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px);
+}
+
+/* VIGNETTE */
+#vignette{
+  position:fixed;inset:0;z-index:9996;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.85) 100%);
+}
+
+/* ── WRAPPER ── */
+#root{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+#hdr{
+  position:relative;text-align:center;
+  padding:44px 20px 28px;
+  border-bottom:2px solid var(--blood);
+  overflow:hidden;
+}
+#hdr-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 90% 70% at 50% -10%,rgba(140,0,0,0.3),transparent 70%);
+  pointer-events:none;
+}
+.hdr-skulls{
+  font-size:1rem;color:var(--blood);letter-spacing:12px;
+  margin-bottom:8px;opacity:0.5;
+  animation:skullfade 3s ease-in-out infinite alternate;
+}
+@keyframes skullfade{from{opacity:0.3}to{opacity:0.7}}
+
+#site-name{
+  font-family:'UnifrakturMaguntia',cursive;
+  font-size:clamp(3.5rem,12vw,8rem);
+  line-height:1;
+  color:var(--gore);
+  text-shadow:
+    0 0 20px var(--glow1),
+    0 0 50px var(--glow2),
+    0 0 100px rgba(120,0,0,0.2),
+    3px 3px 0 #000,
+    -1px -1px 0 rgba(255,30,0,0.3);
+  position:relative;
+  display:inline-block;
+  animation:nameglitch 8s infinite;
+}
+
+@keyframes nameglitch{
+  0%,88%,96%,100%{transform:none;filter:none;}
+  89%{transform:translate(-3px,0) skewX(-2deg);filter:hue-rotate(20deg);}
+  90%{transform:translate(3px,0);filter:brightness(1.4);}
+  91%{transform:translate(0,2px) skewX(1deg);}
+  92%{transform:none;}
+  94%{transform:translate(2px,-1px);filter:hue-rotate(-10deg);}
+  95%{transform:none;}
+}
+
+.hdr-sub{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:0.9rem;letter-spacing:8px;color:var(--ash);
+  margin-top:6px;
+}
+
+/* DRIP SVG BOTTOM */
+.drip-svg{position:absolute;bottom:-1px;left:0;width:100%;height:50px;overflow:hidden;}
+
+/* MARQUEE */
+.marquee-wrap{
+  background:linear-gradient(90deg,#1a0000,#300000,#1a0000);
+  border-bottom:1px solid rgba(139,0,0,0.5);
+  overflow:hidden;white-space:nowrap;padding:7px 0;
+}
+.marquee-inner{
+  display:inline-block;
+  animation:crawl 40s linear infinite;
+  font-size:0.6rem;letter-spacing:3px;color:rgba(200,180,150,0.75);
+}
+@keyframes crawl{from{transform:translateX(110vw)}to{transform:translateX(-100%)}}
+
+/* ── BODY LAYOUT ── */
+#body{
+  display:grid;
+  grid-template-columns:340px 1fr;
+  flex:1;
+}
+@media(max-width:800px){#body{grid-template-columns:1fr;}}
+
+/* ── LEFT PANEL ── */
+#left{
+  background:linear-gradient(180deg,#0a0202,#050101);
+  border-right:1px solid var(--edge);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+#left::-webkit-scrollbar{width:3px;}
+#left::-webkit-scrollbar-thumb{background:var(--blood);}
+
+/* NOW PLAYING CARD */
+#np-card{
+  margin:16px;
+  border:1px solid var(--blood);
+  background:linear-gradient(135deg,#120000,#080000);
+  padding:18px;
+  position:relative;
+  overflow:hidden;
+}
+#np-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(139,0,0,0.12),transparent 60%);
+  pointer-events:none;
+}
+#np-card::after{
+  content:'';position:absolute;
+  top:-50%;left:-50%;width:200%;height:200%;
+  background:conic-gradient(transparent,rgba(139,0,0,0.05),transparent);
+  animation:spinbg 12s linear infinite;
+  pointer-events:none;
+}
+@keyframes spinbg{to{transform:rotate(360deg);}}
+
+.np-badge{
+  display:flex;align-items:center;gap:6px;
+  font-size:0.5rem;letter-spacing:4px;color:var(--blood);
+  margin-bottom:12px;text-transform:uppercase;
+}
+.np-led{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--gore);
+  box-shadow:0 0 8px var(--gore),0 0 16px var(--blood);
+  animation:led 1.4s ease-in-out infinite;
+}
+.np-led.off{background:var(--ash);box-shadow:none;animation:none;}
+@keyframes led{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* DISC */
+#disc-wrap{
+  width:120px;height:120px;margin:0 auto 16px;
+  position:relative;display:flex;align-items:center;justify-content:center;
+}
+#disc{
+  width:110px;height:110px;border-radius:50%;
+  background:conic-gradient(
+    #1a0000 0deg,#0d0d0d 30deg,#2d0000 60deg,#0a0a0a 90deg,
+    #1a0000 120deg,#111 150deg,#2d0000 180deg,#0a0a0a 210deg,
+    #1a0000 240deg,#0d0d0d 270deg,#2d0000 300deg,#0a0a0a 330deg,#1a0000 360deg
+  );
+  position:relative;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 0 30px rgba(139,0,0,0.4),inset 0 0 20px rgba(0,0,0,0.8);
+  transition:filter 0.4s;
+}
+#disc.spin{animation:discspin 2.5s linear infinite;}
+@keyframes discspin{to{transform:rotate(360deg);}}
+#disc::before{
+  content:'';position:absolute;inset:30%;border-radius:50%;
+  background:radial-gradient(circle,#181818 40%,#111 100%);
+}
+#disc::after{
+  content:'';position:absolute;inset:46%;border-radius:50%;
+  background:#000;box-shadow:0 0 0 1px rgba(255,255,255,0.08);
+}
+.disc-shine{
+  position:absolute;inset:5%;border-radius:50%;
+  background:conic-gradient(
+    transparent 0deg,rgba(255,255,255,0.12) 20deg,rgba(200,50,50,0.08) 40deg,
+    transparent 80deg,rgba(255,255,255,0.06) 160deg,transparent 220deg,
+    rgba(200,200,255,0.05) 300deg,transparent 360deg
+  );
+  pointer-events:none;
+}
+.disc-ring{
+  position:absolute;inset:-6px;border-radius:50%;
+  border:1px solid rgba(139,0,0,0.3);
+  box-shadow:0 0 20px rgba(139,0,0,0.2);
+  animation:ringpulse 3s ease-in-out infinite;
+}
+@keyframes ringpulse{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:1;transform:scale(1.03)}}
+
+#np-song{
+  font-family:'UnifrakturMaguntia',cursive;
+  font-size:1.15rem;color:var(--bone);
+  text-align:center;line-height:1.3;
+  text-shadow:1px 1px 0 #000;
+  position:relative;z-index:1;
+}
+#np-artist{font-size:0.7rem;color:var(--parchment);text-align:center;margin-top:4px;letter-spacing:1px;}
+#np-album{font-size:0.55rem;color:var(--ash);text-align:center;margin-top:2px;letter-spacing:1px;}
+#np-genre{
+  text-align:center;margin-top:8px;
+  font-size:0.5rem;letter-spacing:3px;
+  color:var(--blood);text-transform:uppercase;
+}
+
+/* WAVEFORM */
+#wave{
+  display:flex;align-items:flex-end;gap:2px;
+  height:36px;margin:12px 0;padding:0 2px;
+}
+.wb{flex:1;background:var(--blood);border-radius:1px 1px 0 0;min-height:3px;transition:height 80ms;}
+
+/* PROGRESS */
+#prog-wrap{padding:0 16px 12px;}
+#prog-outer{
+  width:100%;height:5px;background:var(--edge);
+  cursor:pointer;position:relative;margin-bottom:6px;
+  border-radius:2px;overflow:hidden;
+}
+#prog-inner{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--blood),var(--gore),var(--lava));
+  border-radius:2px;
+  box-shadow:0 0 8px var(--blood),0 0 16px rgba(139,0,0,0.4);
+  transition:width 0.9s linear;
+  position:relative;
+}
+#prog-inner::after{
+  content:'';position:absolute;right:0;top:50%;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--lava);box-shadow:0 0 8px var(--lava);
+  transform:translate(50%,-50%);
+}
+.time-row{display:flex;justify-content:space-between;font-size:0.6rem;color:var(--ash);}
+
+/* CONTROLS */
+#ctrl-wrap{
+  padding:8px 16px 16px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.ctrl-row{display:flex;align-items:center;justify-content:center;gap:8px;}
+.cbtn{
+  background:none;border:1px solid var(--edge);
+  color:var(--ash);cursor:pointer;
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.65rem;padding:7px 10px;
+  transition:all 0.15s;letter-spacing:1px;
+  position:relative;overflow:hidden;
+}
+.cbtn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(139,0,0,0.15),transparent);
+  opacity:0;transition:opacity 0.2s;
+}
+.cbtn:hover::before,.cbtn.on::before{opacity:1;}
+.cbtn:hover,.cbtn.on{border-color:var(--crimson);color:var(--gore);box-shadow:0 0 12px rgba(139,0,0,0.4),inset 0 0 8px rgba(139,0,0,0.1);}
+.cbtn.big{font-size:1.4rem;padding:10px 22px;border-color:var(--blood);color:var(--bone);}
+.cbtn.big:hover{box-shadow:0 0 20px rgba(187,0,0,0.6),inset 0 0 12px rgba(139,0,0,0.2);}
+.vol-row{display:flex;align-items:center;gap:8px;font-size:0.55rem;color:var(--ash);}
+input[type=range]{-webkit-appearance:none;flex:1;height:3px;background:var(--edge);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--crimson);border-radius:50%;box-shadow:0 0 6px var(--blood);}
+
+/* GENRE CHIPS */
+#genres{
+  padding:12px 16px;border-top:1px solid var(--edge);
+  display:flex;flex-wrap:wrap;gap:5px;
+}
+.gc{
+  background:none;border:1px solid var(--edge);color:var(--ash);
+  font-size:0.5rem;padding:3px 7px;cursor:pointer;letter-spacing:1px;
+  transition:all 0.15s;text-transform:uppercase;
+}
+.gc:hover,.gc.on{border-color:var(--blood);color:var(--gore);background:rgba(139,0,0,0.1);}
+
+/* SPOTIFY */
+.sptfy{
+  display:block;margin:10px 16px 16px;padding:9px;
+  border:1px solid rgba(30,215,96,0.2);background:rgba(30,215,96,0.04);
+  color:rgba(30,215,96,0.65);font-size:0.55rem;letter-spacing:2px;
+  text-align:center;text-decoration:none;transition:all 0.2s;
+}
+.sptfy:hover{border-color:rgba(30,215,96,0.6);color:#1ed760;background:rgba(30,215,96,0.1);box-shadow:0 0 16px rgba(30,215,96,0.15);}
+
+.stat-line{
+  padding:8px 16px;font-size:0.5rem;color:var(--ash);
+  letter-spacing:2px;border-top:1px solid var(--edge);
+}
+
+/* SPOTIFY EMBED */
+#sp-dock{
+  border-top:2px solid var(--blood);
+  background:#000;
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 0.45s cubic-bezier(0.23,1,0.32,1);
+  position:relative;
+}
+#sp-dock.open{ max-height:160px; }
+#sp-dock::before{
+  content:'⛧ SPOTIFY PLAYER ⛧';
+  display:block;
+  font-size:0.45rem;letter-spacing:4px;color:var(--blood);
+  padding:6px 16px 0;
+}
+#sp-dock .no-spotify{
+  padding:18px 16px;
+  font-size:0.6rem;color:var(--ash);letter-spacing:2px;
+  text-align:center;
+  line-height:1.8;
+}
+#sp-dock .no-spotify a{
+  color:rgba(30,215,96,0.7);text-decoration:none;
+  border-bottom:1px solid rgba(30,215,96,0.3);
+}
+#sp-dock .no-spotify a:hover{color:#1ed760;}
+#sp-iframe{
+  width:100%;
+  height:80px;
+  border:none;
+  display:block;
+  border-radius:0;
+  background:#000;
+}
+#sp-close{
+  position:absolute;top:4px;right:10px;
+  background:none;border:none;
+  color:var(--ash);font-size:0.7rem;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;
+  transition:color 0.15s;z-index:5;
+}
+#sp-close:hover{color:var(--gore);}
+
+/* tweak sptfy link — now just "open full page" */
+.sptfy{ margin-top:0; }
+
+/* ── RIGHT PANEL ── */
+#right{display:flex;flex-direction:column;min-height:100vh;}
+
+/* SEARCH */
+#searchbar{
+  padding:12px 20px;background:var(--panel);
+  border-bottom:1px solid var(--edge);
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:20;
+  backdrop-filter:blur(10px);
+}
+.search-icon{font-size:0.9rem;color:var(--blood);}
+#srch{
+  flex:1;background:none;border:none;border-bottom:1px solid var(--edge);
+  color:var(--bone);font-family:'Share Tech Mono',monospace;
+  font-size:0.75rem;letter-spacing:1px;padding:4px 0;outline:none;
+}
+#srch::placeholder{color:var(--ash);opacity:0.5;}
+#srch:focus{border-bottom-color:var(--blood);}
+#srch-count{font-size:0.55rem;color:var(--ash);white-space:nowrap;}
+
+/* TABLE HEAD */
+.th{
+  display:grid;
+  grid-template-columns:44px 1fr 170px 150px 90px 55px;
+  padding:8px 20px;
+  background:linear-gradient(90deg,#0f0303,#080101);
+  border-bottom:1px solid var(--blood);
+  font-size:0.5rem;letter-spacing:3px;color:var(--blood);
+  text-transform:uppercase;position:sticky;top:57px;z-index:19;
+}
+@media(max-width:600px){
+  .th,.tr{grid-template-columns:34px 1fr 100px 55px !important;}
+  .h-art,.h-alb,.t-art,.t-alb{display:none;}
+}
+
+/* TRACKS */
+#tlist{flex:1;overflow-y:auto;}
+#tlist::-webkit-scrollbar{width:4px;}
+#tlist::-webkit-scrollbar-thumb{background:linear-gradient(var(--blood),var(--crimson));}
+#tlist::-webkit-scrollbar-track{background:var(--void);}
+
+.tr{
+  display:grid;
+  grid-template-columns:44px 1fr 170px 150px 90px 55px;
+  padding:0 20px;height:50px;align-items:center;
+  border-bottom:1px solid rgba(26,5,5,0.9);
+  cursor:pointer;transition:background 0.12s;
+  position:relative;
+}
+.tr::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;background:linear-gradient(var(--gore),var(--blood));
+  transform:scaleY(0);transform-origin:bottom;transition:transform 0.2s;
+}
+.tr:hover{background:rgba(139,0,0,0.07);}
+.tr:hover::after,.tr.active::after{transform:scaleY(1);}
+.tr.active{background:rgba(139,0,0,0.14);}
+.tr.active .t-num{color:var(--gore);}
+.tr.active .t-name{color:#fff;}
+
+.t-num{font-size:0.6rem;color:var(--ash);text-align:center;position:relative;}
+.t-name{
+  font-size:0.82rem;color:var(--parchment);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;
+}
+.t-name .pi{
+  color:var(--gore);font-size:0.55rem;
+  display:inline-block;width:0;overflow:hidden;
+  vertical-align:middle;margin-right:0;
+  transition:width 0.2s,margin 0.2s;
+}
+.tr.active .t-name .pi{width:14px;margin-right:6px;}
+.t-art{font-size:0.7rem;color:var(--ash);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;}
+.t-alb{font-size:0.6rem;color:rgba(85,64,64,0.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;}
+.t-gnr{font-size:0.5rem;color:var(--blood);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.t-dur{font-size:0.6rem;color:var(--ash);text-align:right;}
+
+/* BARS while playing */
+.t-num .bars{
+  display:none;align-items:flex-end;justify-content:center;gap:1px;height:14px;width:100%;
+}
+.tr.active .t-num .bars{display:flex;}
+.tr.active .t-num .num-val{display:none;}
+.bar-b{width:3px;background:var(--gore);border-radius:1px;animation:barjump 0.4s ease-in-out infinite alternate;}
+.bar-b:nth-child(2){animation-delay:0.1s;animation-duration:0.35s;}
+.bar-b:nth-child(3){animation-delay:0.2s;animation-duration:0.5s;}
+@keyframes barjump{from{height:3px}to{height:14px}}
+
+/* EMPTY */
+.empty{padding:80px 20px;text-align:center;font-size:0.65rem;color:var(--ash);letter-spacing:3px;}
+
+/* FOOTER */
+#ftr{
+  border-top:2px solid var(--blood);padding:20px;text-align:center;
+  background:var(--deep);
+}
+.ftr-sym{font-size:1.1rem;opacity:0.35;margin:0 10px;}
+.ftr-txt{font-size:0.5rem;color:var(--ash);letter-spacing:4px;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor">
+  <svg viewBox="0 0 24 24" fill="none">
+    <path d="M4 2 L4 18 L8 14 L11 20 L13 19 L10 13 L15 13 Z" fill="#8b0000" stroke="#cc0000" stroke-width="0.5"/>
+  </svg>
+</div>
+<div id="cursor-trail"></div>
+
+<!-- CANVAS -->
+<canvas id="bg-canvas"></canvas>
+<div id="scanlines"></div>
+<div id="vignette"></div>
+
+<div id="root">
+
+  <!-- HEADER -->
+  <div id="hdr">
+    <div id="hdr-glow"></div>
+    <div class="hdr-skulls">☠ &nbsp;☠&nbsp; ☠ &nbsp;☠&nbsp; ☠ &nbsp;☠&nbsp; ☠</div>
+    <div id="site-name">Bloodcrypt</div>
+    <div class="hdr-sub">⛧ &nbsp; UNDERGROUND METAL PLAYER &nbsp; ⛧ &nbsp; EST. IN THE ABYSS &nbsp; ⛧</div>
+    <div class="drip-svg">
+      <svg viewBox="0 0 1400 50" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" width="100%" height="50">
+        <path d="M0,0 Q20,0 25,10 Q30,22 33,32 Q36,42 40,46 Q44,50 48,46 Q52,42 55,32 Q58,22 63,10 Q68,0 90,0 Q115,0 118,8 Q121,18 124,28 Q127,36 131,42 Q135,48 139,42 Q143,36 146,28 Q149,18 152,8 Q155,0 180,0 Q205,0 208,12 Q211,26 215,34 Q219,42 224,47 Q229,50 234,47 Q239,42 243,34 Q247,26 250,12 Q253,0 280,0 Q305,0 307,9 Q309,20 312,30 Q315,39 319,45 Q323,50 327,45 Q331,39 334,30 Q337,20 339,9 Q341,0 370,0 Q400,0 402,11 Q404,24 408,34 Q412,44 417,48 Q422,52 427,48 Q432,44 436,34 Q440,24 442,11 Q444,0 470,0 Q498,0 500,8 Q502,18 505,27 Q508,35 512,41 Q516,46 520,41 Q524,35 527,27 Q530,18 532,8 Q534,0 562,0 Q590,0 593,13 Q596,28 601,37 Q606,46 611,50 Q616,46 621,37 Q626,28 629,13 Q632,0 660,0 Q688,0 690,10 Q692,22 695,31 Q698,40 702,45 Q706,48 710,45 Q714,40 717,31 Q720,22 722,10 Q724,0 752,0 Q780,0 782,7 Q784,16 787,25 Q790,33 793,39 Q796,44 800,39 Q804,33 807,25 Q810,16 812,7 Q814,0 842,0 Q870,0 873,12 Q876,26 880,35 Q884,44 888,48 Q892,50 896,48 Q900,44 904,35 Q908,26 911,12 Q914,0 942,0 Q968,0 970,9 Q972,20 975,29 Q978,37 981,43 Q984,47 988,43 Q992,37 995,29 Q998,20 1000,9 Q1002,0 1030,0 Q1058,0 1061,11 Q1064,24 1068,33 Q1072,42 1077,47 Q1082,50 1087,47 Q1092,42 1096,33 Q1100,24 1103,11 Q1106,0 1132,0 Q1158,0 1160,8 Q1162,18 1165,27 Q1168,35 1171,41 Q1174,46 1178,41 Q1182,35 1185,27 Q1188,18 1190,8 Q1192,0 1220,0 Q1248,0 1251,13 Q1254,28 1258,37 Q1262,46 1267,49 Q1272,50 1277,49 Q1282,46 1286,37 Q1290,28 1293,13 Q1296,0 1320,0 Q1350,0 1353,10 Q1356,22 1359,31 Q1362,40 1365,44 Q1368,47 1372,44 Q1376,40 1378,31 Q1380,22 1382,10 Q1384,0 1400,0 Z"
+        fill="#8b0000"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="marquee-wrap">
+    <span class="marquee-inner">☩ DEATH METAL ☩ GORE METAL ☩ GOREGRIND ☩ BRUTAL DEATH ☩ SLAM ☩ DEATHCORE ☩ BLACK METAL ☩ THRASH ☩ METALCORE ☩ DOOM METAL ☩ GRINDCORE ☩ DUNGEON METAL ☩ GROOVE METAL ☩ POST-HARDCORE ☩ NU-METAL ☩ SYMPHONIC DEATH ☩ TECHNICAL DEATH ☩ WAR METAL ☩ DEATH METAL ☩ GORE METAL ☩ GOREGRIND ☩ BRUTAL DEATH ☩ SLAM ☩ DEATHCORE ☩ BLACK METAL ☩ THRASH ☩ METALCORE ☩</span>
+  </div>
+
+  <!-- BODY -->
+  <div id="body">
+
+    <!-- LEFT -->
+    <div id="left">
+
+      <div id="np-card">
+        <div class="np-badge">
+          <div class="np-led off" id="np-led"></div>
+          <span id="np-status">IDLE — SELECT A TRACK</span>
+        </div>
+        <div id="disc-wrap">
+          <div class="disc-ring"></div>
+          <div id="disc"><div class="disc-shine"></div></div>
+        </div>
+        <div id="np-song">— — —</div>
+        <div id="np-artist">BLOODCRYPT RECORDS</div>
+        <div id="np-album"></div>
+        <div id="np-genre"></div>
+        <div id="wave"></div>
+      </div>
+
+      <div id="prog-wrap">
+        <div id="prog-outer">
+          <div id="prog-inner"></div>
+        </div>
+        <div class="time-row">
+          <span id="t-cur">0:00</span>
+          <span id="t-tot">0:00</span>
+        </div>
+      </div>
+
+      <div id="ctrl-wrap">
+        <div class="ctrl-row">
+          <button class="cbtn" id="b-shuf" title="Shuffle">⇄ SHUF</button>
+          <button class="cbtn" id="b-prev">⏮ PREV</button>
+          <button class="cbtn big" id="b-play">▶</button>
+          <button class="cbtn" id="b-next">NEXT ⏭</button>
+          <button class="cbtn" id="b-rep" title="Repeat">↻ REP</button>
+        </div>
+        <div class="vol-row">
+          <span>☠ VOL</span>
+          <input type="range" id="vol" min="0" max="1" step="0.02" value="0.8">
+          <span id="vol-pct">80%</span>
+        </div>
+      </div>
+
+      <div id="genres"></div>
+
+      <!-- SPOTIFY EMBED DOCK -->
+      <div id="sp-dock">
+        <button id="sp-close" title="Close player">✕</button>
+        <div id="sp-body"></div>
+      </div>
+
+      <a class="sptfy" id="sptfy-btn" href="https://open.spotify.com/playlist/7J7lEoLhaMM5LroJDmeSGZ" target="_blank">
+        ⚡ &nbsp; OPEN FULL PAGE ON SPOTIFY &nbsp; ⚡
+      </a>
+
+      <div class="stat-line" id="stat-line">157 TRACKS LOADED FROM THE ABYSS</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div id="right">
+      <div id="searchbar">
+        <span class="search-icon">⚔</span>
+        <input type="text" id="srch" placeholder="Search tracks, bands, albums, genres...">
+        <span id="srch-count">157 tracks</span>
+      </div>
+
+      <div class="th">
+        <span>#</span>
+        <span>TITLE</span>
+        <span class="h-art">ARTIST</span>
+        <span class="h-alb">ALBUM</span>
+        <span>GENRE</span>
+        <span style="text-align:right">TIME</span>
+      </div>
+
+      <div id="tlist"></div>
+    </div>
+  </div>
+
+  <div id="ftr">
+    <span class="ftr-sym">☠</span>
+    <span class="ftr-sym">⛧</span>
+    <span class="ftr-sym">☠</span>
+    <div class="ftr-txt">BLOODCRYPT // UNDERGROUND METAL PLAYER // ALL TRACKS LINK TO SPOTIFY // NOT FOR THE WEAK</div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  CANVAS — BLOOD RAIN + FLOATING EMBERS
+// ══════════════════════════════════════
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+
+const drops = Array.from({length:60},()=>({
+  x:Math.random()*window.innerWidth,
+  y:Math.random()*window.innerHeight,
+  speed:0.6+Math.random()*1.8,
+  len:15+Math.random()*60,
+  opacity:0.1+Math.random()*0.35,
+  width:0.5+Math.random()*1.5
+}));
+
+const embers = Array.from({length:25},()=>({
+  x:Math.random()*window.innerWidth,
+  y:window.innerHeight+Math.random()*100,
+  vx:(Math.random()-0.5)*0.6,
+  vy:-(0.3+Math.random()*0.8),
+  r:1+Math.random()*3,
+  life:Math.random(),
+  decay:0.002+Math.random()*0.003
+}));
+
+function drawBG(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // blood drops
+  drops.forEach(d=>{
+    d.y += d.speed;
+    if(d.y > canvas.height+d.len){ d.y=-d.len; d.x=Math.random()*canvas.width; }
+    const grad=ctx.createLinearGradient(d.x,d.y-d.len,d.x,d.y);
+    grad.addColorStop(0,'rgba(120,0,0,0)');
+    grad.addColorStop(0.7,`rgba(139,0,0,${d.opacity})`);
+    grad.addColorStop(1,`rgba(200,0,0,${d.opacity*0.5})`);
+    ctx.beginPath();ctx.strokeStyle=grad;ctx.lineWidth=d.width;
+    ctx.moveTo(d.x,d.y-d.len);ctx.lineTo(d.x,d.y);ctx.stroke();
+    // drip dot
+    ctx.beginPath();
+    ctx.fillStyle=`rgba(200,0,0,${d.opacity*0.6})`;
+    ctx.arc(d.x,d.y,d.width*1.5,0,Math.PI*2);ctx.fill();
+  });
+
+  // embers
+  embers.forEach(e=>{
+    e.x+=e.vx; e.y+=e.vy; e.life-=e.decay;
+    if(e.life<=0){
+      e.x=Math.random()*canvas.width;
+      e.y=canvas.height+10;
+      e.life=0.6+Math.random()*0.4;
+      e.vx=(Math.random()-0.5)*0.6;
+      e.vy=-(0.3+Math.random()*0.8);
+    }
+    ctx.beginPath();
+    const eg=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r*2);
+    eg.addColorStop(0,`rgba(255,80,0,${e.life*0.8})`);
+    eg.addColorStop(1,'rgba(139,0,0,0)');
+    ctx.fillStyle=eg;
+    ctx.arc(e.x,e.y,e.r*2,0,Math.PI*2);ctx.fill();
+  });
+
+  requestAnimationFrame(drawBG);
+}
+drawBG();
+
+// ══════════════════════════════
+//  CURSOR
+// ══════════════════════════════
+const cur=document.getElementById('cursor');
+const trail=document.getElementById('cursor-trail');
+document.addEventListener('mousemove',e=>{
+  cur.style.left=e.clientX+'px'; cur.style.top=e.clientY+'px';
+  trail.style.left=e.clientX+'px'; trail.style.top=e.clientY+'px';
+});
+
+// ══════════════════════════════
+//  TRACK DATA
+// ══════════════════════════════
+const TRACKS=[
+  {id:1,title:"Entombment of a Machine",artist:"Job For A Cowboy",album:"Doom EP",genre:"Death Metal",dur:"3:14",sid:"2U5maLAuS2ZoJzELaXzNqY"},
+  {id:2,title:"Knee Deep",artist:"Job For A Cowboy",album:"Genesis",genre:"Death Metal",dur:"4:02",sid:""},
+  {id:3,title:"Bearing the Serpent's Lamb",artist:"Job For A Cowboy",album:"Genesis",genre:"Death Metal",dur:"3:55",sid:""},
+  {id:4,title:"Embedded",artist:"Job For A Cowboy",album:"Genesis",genre:"Death Metal",dur:"3:41",sid:""},
+  {id:5,title:"Altered from Catechization",artist:"Job For A Cowboy",album:"Genesis",genre:"Death Metal",dur:"4:18",sid:""},
+  {id:6,title:"The Death in Your Eyes",artist:"Eternal Suffering",album:"Drowning in Fear",genre:"Death Metal",dur:"4:33",sid:"7pWJr9Sggt9PJ6MEaeUusg"},
+  {id:7,title:"Drowning in Fear",artist:"Eternal Suffering",album:"Drowning in Fear",genre:"Death Metal",dur:"5:02",sid:""},
+  {id:8,title:"Wrapped in Misery",artist:"Eternal Suffering",album:"Drowning in Fear",genre:"Death Metal",dur:"4:11",sid:""},
+  {id:9,title:"Hate Purgatory",artist:"The Dark Prison Massacre",album:"Hate Purgatory",genre:"Death Metal",dur:"3:47",sid:"3jRZObGDDuEjbKFpUvhlkX"},
+  {id:10,title:"Mass Execution",artist:"The Dark Prison Massacre",album:"Hate Purgatory",genre:"Death Metal",dur:"3:22",sid:""},
+  {id:11,title:"Dungeon of Screams",artist:"The Dark Prison Massacre",album:"Hate Purgatory",genre:"Death Metal",dur:"4:05",sid:""},
+  {id:12,title:"Intensified Genocide",artist:"Shadow of Intent",album:"Melancholy",genre:"Death Metal",dur:"4:44",sid:"6AOv0MzbPPiQYrDEAfn4cp"},
+  {id:13,title:"Gravesinger",artist:"Shadow of Intent",album:"Melancholy",genre:"Death Metal",dur:"5:11",sid:""},
+  {id:14,title:"The Catacombs",artist:"Shadow of Intent",album:"Melancholy",genre:"Death Metal",dur:"6:02",sid:"4OQTjJQp77nVBfZuGnLPmY"},
+  {id:15,title:"Underneath a Sullen Moon",artist:"Shadow of Intent",album:"Melancholy",genre:"Death Metal",dur:"4:58",sid:""},
+  {id:16,title:"Barren and Breathless Macrocosm",artist:"Shadow of Intent",album:"Melancholy",genre:"Death Metal",dur:"5:30",sid:""},
+  {id:17,title:"Oudenophobia",artist:"Shadow of Intent",album:"Reclaimer",genre:"Death Metal",dur:"4:22",sid:""},
+  {id:18,title:"Anton's Air Powered Obliteration",artist:"Bassault US",album:"Split",genre:"Death Metal",dur:"2:58",sid:"0dvskHgHP34X9VcArtBvgU"},
+  {id:19,title:"Impaled",artist:"Cattle Decapitation",album:"To Serve Man",genre:"Death Metal",dur:"3:02",sid:""},
+  {id:20,title:"Regret & the Grave",artist:"Cattle Decapitation",album:"Monolith of Inhumanity",genre:"Death Metal",dur:"4:11",sid:""},
+  {id:21,title:"Forced Gender Reassignment",artist:"Cattle Decapitation",album:"Monolith of Inhumanity",genre:"Death Metal",dur:"3:47",sid:""},
+  {id:22,title:"Lifelong Lethargy",artist:"Cattle Decapitation",album:"Monolith of Inhumanity",genre:"Death Metal",dur:"3:28",sid:""},
+  {id:23,title:"Condemned to Agony",artist:"Dying Fetus",album:"Reign Supreme",genre:"Death Metal",dur:"4:02",sid:""},
+  {id:24,title:"In the Trenches",artist:"Dying Fetus",album:"Reign Supreme",genre:"Death Metal",dur:"3:55",sid:""},
+  {id:25,title:"Subjected to a Beating",artist:"Dying Fetus",album:"Reign Supreme",genre:"Death Metal",dur:"4:22",sid:""},
+  {id:26,title:"Second Skin",artist:"Dying Fetus",album:"Stop at Nothing",genre:"Death Metal",dur:"3:41",sid:""},
+  {id:27,title:"Hammer Smashed Face",artist:"Cannibal Corpse",album:"Tomb of the Mutilated",genre:"Death Metal",dur:"3:54",sid:""},
+  {id:28,title:"Stripped, Raped, and Strangled",artist:"Cannibal Corpse",album:"The Bleeding",genre:"Death Metal",dur:"3:25",sid:""},
+  {id:29,title:"Make Them Suffer",artist:"Cannibal Corpse",album:"Evisceration Plague",genre:"Death Metal",dur:"4:02",sid:""},
+  {id:30,title:"Devoured by Vermin",artist:"Cannibal Corpse",album:"Kill",genre:"Death Metal",dur:"3:11",sid:""},
+  {id:31,title:"In the Name of Suffering",artist:"Suffocation",album:"Effigy of the Forgotten",genre:"Death Metal",dur:"4:08",sid:""},
+  {id:32,title:"Liege of Inveracity",artist:"Suffocation",album:"Effigy of the Forgotten",genre:"Death Metal",dur:"3:22",sid:""},
+  {id:33,title:"Habitual Infamy",artist:"Suffocation",album:"Pinnacle of Bedlam",genre:"Death Metal",dur:"3:55",sid:""},
+  {id:34,title:"Beginning of Sorrow",artist:"Suffocation",album:"Pinnacle of Bedlam",genre:"Death Metal",dur:"4:11",sid:""},
+  {id:35,title:"Obscura",artist:"Gorguts",album:"Obscura",genre:"Death Metal",dur:"5:44",sid:""},
+  {id:36,title:"Earthly Love",artist:"Gorguts",album:"Obscura",genre:"Death Metal",dur:"4:28",sid:""},
+  {id:37,title:"Clouded",artist:"Gorguts",album:"Clouded",genre:"Death Metal",dur:"12:42",sid:""},
+  {id:38,title:"Cast Down the Heretic",artist:"Nile",album:"Annihilation of the Wicked",genre:"Death Metal",dur:"6:54",sid:""},
+  {id:39,title:"Sacrifice Unto Sebek",artist:"Nile",album:"In Their Darkened Shrines",genre:"Death Metal",dur:"3:48",sid:""},
+  {id:40,title:"Sarcophagus",artist:"Nile",album:"In Their Darkened Shrines",genre:"Death Metal",dur:"5:22",sid:""},
+  {id:41,title:"Domination",artist:"Morbid Angel",album:"Domination",genre:"Death Metal",dur:"4:55",sid:""},
+  {id:42,title:"Maze of Torment",artist:"Morbid Angel",album:"Altars of Madness",genre:"Death Metal",dur:"3:38",sid:""},
+  {id:43,title:"Chapel of Ghouls",artist:"Morbid Angel",album:"Altars of Madness",genre:"Death Metal",dur:"5:14",sid:""},
+  {id:44,title:"God of Emptiness",artist:"Morbid Angel",album:"Covenant",genre:"Death Metal",dur:"6:28",sid:""},
+  {id:45,title:"Necromaniac",artist:"Exhumed",album:"Gore Metal",genre:"Gore Metal",dur:"3:08",sid:"6E3CfnXv6GKVC9rBfGptp6"},
+  {id:46,title:"Open the Abscess",artist:"Exhumed",album:"Gore Metal",genre:"Gore Metal",dur:"3:32",sid:""},
+  {id:47,title:"In My Human Slaughterhouse",artist:"Exhumed",album:"Gore Metal",genre:"Gore Metal",dur:"2:55",sid:""},
+  {id:48,title:"Casket to Altar",artist:"Exhumed",album:"Gore Metal",genre:"Gore Metal",dur:"4:01",sid:""},
+  {id:49,title:"Decrepit Crescendo",artist:"Exhumed",album:"Slaughtercult",genre:"Gore Metal",dur:"3:22",sid:""},
+  {id:50,title:"Sodomy and Lust",artist:"Exhumed",album:"Slaughtercult",genre:"Gore Metal",dur:"2:48",sid:""},
+  {id:51,title:"Black Metal Is Dead",artist:"Psychopaths Bloodshed",album:"Black Metal Is Dead",genre:"Gore Metal",dur:"2:11",sid:"1obnG9tl7S7tavXca04lBX"},
+  {id:52,title:"Doggy and Kitty Go Brutal",artist:"Psychopaths Bloodshed",album:"Black Metal Is Dead",genre:"Gore Metal",dur:"1:55",sid:"7iyfZY34V9pY4BAtreXYt3"},
+  {id:53,title:"Dismemberment Penetration",artist:"Psychopaths Bloodshed",album:"Black Metal Is Dead",genre:"Gore Metal",dur:"2:33",sid:"1A1UB8YAUEHldJ9T9LwPAm"},
+  {id:54,title:"Sword Fight With My Cock",artist:"BLOXECTOMY",album:"Surgical Terror",genre:"Gore Metal",dur:"2:18",sid:"3rZOVpWe8SRZ9diGTdBFD1"},
+  {id:55,title:"Cart Ride into My Weiner",artist:"BLOXECTOMY",album:"Surgical Terror",genre:"Gore Metal",dur:"1:52",sid:"49J5YqMYHUWDqeVUHkjvxS"},
+  {id:56,title:"Scalpel Genocide",artist:"BLOXECTOMY",album:"Surgical Terror",genre:"Gore Metal",dur:"2:05",sid:""},
+  {id:57,title:"Plastic Mincer",artist:"Haggus",album:"Mince Grind Chronicles",genre:"Goregrind",dur:"1:22",sid:"3CmZuIfv9hg25bkLJP8dO4"},
+  {id:58,title:"Grind Epoch",artist:"Haggus",album:"Mince Grind Chronicles",genre:"Goregrind",dur:"1:08",sid:""},
+  {id:59,title:"Maggot Mass",artist:"Haggus",album:"Mince Grind Chronicles",genre:"Goregrind",dur:"0:58",sid:""},
+  {id:60,title:"Fetid Remains",artist:"Haggus",album:"Mince Grind Chronicles",genre:"Goregrind",dur:"1:14",sid:""},
+  {id:61,title:"Decapitation Fantasy",artist:"Haggus",album:"Mince Grind Chronicles",genre:"Goregrind",dur:"1:31",sid:""},
+  {id:62,title:"PERPETUAL STENCH OF AN UNKNOWN CORPSE",artist:"Forklift Circumcision",album:"Split",genre:"Goregrind",dur:"2:02",sid:"3ccOaiqdCfi1nhcYhdBW0f"},
+  {id:63,title:"Frantic Disembowelment",artist:"Abominable Putridity",album:"The Anomalies of Artificial Origin",genre:"Slam",dur:"2:28",sid:""},
+  {id:64,title:"Remnants of the Tortured",artist:"Abominable Putridity",album:"The Anomalies of Artificial Origin",genre:"Slam",dur:"3:02",sid:""},
+  {id:65,title:"Dissection of the Illusory Soul",artist:"Abominable Putridity",album:"The Anomalies of Artificial Origin",genre:"Slam",dur:"3:14",sid:""},
+  {id:66,title:"Desecrating the Purity",artist:"Abominable Putridity",album:"In the End of Human Existence",genre:"Slam",dur:"2:55",sid:""},
+  {id:67,title:"Embryonic Fetish",artist:"Devourment",album:"Molesting the Decapitated",genre:"Slam",dur:"2:38",sid:""},
+  {id:68,title:"Molesting the Decapitated",artist:"Devourment",album:"Molesting the Decapitated",genre:"Slam",dur:"3:11",sid:""},
+  {id:69,title:"Postmortal Coprophagia",artist:"Devourment",album:"Butcher the Weak",genre:"Slam",dur:"2:44",sid:""},
+  {id:70,title:"Senseless Massacre",artist:"Rings of Saturn",album:"Lugal Ki En",genre:"Slam",dur:"3:27",sid:"25CWLeqS0Cl0EXnVz2qVM7"},
+  {id:71,title:"Faces Imploding",artist:"Rings of Saturn",album:"Lugal Ki En",genre:"Slam",dur:"4:01",sid:""},
+  {id:72,title:"Seized and Devoured",artist:"Rings of Saturn",album:"Lugal Ki En",genre:"Slam",dur:"3:44",sid:""},
+  {id:73,title:"Parallel Force",artist:"Rings of Saturn",album:"Lugal Ki En",genre:"Slam",dur:"3:18",sid:""},
+  {id:74,title:"Margidda",artist:"Rings of Saturn",album:"Lugal Ki En",genre:"Slam",dur:"4:22",sid:""},
+  {id:75,title:"Eviscerated Offspring",artist:"Rings of Saturn",album:"Embryonic Anomaly",genre:"Slam",dur:"3:32",sid:""},
+  {id:76,title:"No Pity for a Coward",artist:"Suicide Silence",album:"The Cleansing",genre:"Deathcore",dur:"3:28",sid:"70fiaCGcCBWCGKXXISgdJf"},
+  {id:77,title:"Love Me to Death",artist:"Suicide Silence",album:"The Cleansing",genre:"Deathcore",dur:"3:11",sid:"30xWVpvct6LewWIHFEWHdn"},
+  {id:78,title:"Unanswered",artist:"Suicide Silence",album:"The Cleansing",genre:"Deathcore",dur:"3:44",sid:""},
+  {id:79,title:"Bludgeoned to Death",artist:"Suicide Silence",album:"The Cleansing",genre:"Deathcore",dur:"3:02",sid:""},
+  {id:80,title:"Girl of Glass",artist:"Suicide Silence",album:"The Cleansing",genre:"Deathcore",dur:"3:55",sid:""},
+  {id:81,title:"Lifted",artist:"Suicide Silence",album:"No Time to Bleed",genre:"Deathcore",dur:"3:31",sid:""},
+  {id:82,title:"Price of Beauty",artist:"Suicide Silence",album:"No Time to Bleed",genre:"Deathcore",dur:"4:02",sid:""},
+  {id:83,title:"Denial",artist:"Suicide Silence",album:"You Can't Stop Me",genre:"Deathcore",dur:"3:44",sid:""},
+  {id:84,title:"Leech",artist:"Angelmaker",album:"Sanctum",genre:"Deathcore",dur:"3:55",sid:"5XaueS6W32nmVOFqYsmoCr"},
+  {id:85,title:"Void",artist:"Angelmaker",album:"Sanctum",genre:"Deathcore",dur:"4:08",sid:""},
+  {id:86,title:"Throne of Nails",artist:"Angelmaker",album:"Sanctum",genre:"Deathcore",dur:"4:22",sid:""},
+  {id:87,title:"Exterminate the Liberated",artist:"Acrania",album:"Totalitarian Dystopia",genre:"Deathcore",dur:"4:11",sid:"7hJQT86PPuSeIaTfdf1IzQ"},
+  {id:88,title:"Victim of Mankind",artist:"Acrania",album:"Totalitarian Dystopia",genre:"Deathcore",dur:"3:48",sid:""},
+  {id:89,title:"The Embodiment of Hatred",artist:"Acrania",album:"Totalitarian Dystopia",genre:"Deathcore",dur:"4:33",sid:""},
+  {id:90,title:"Anarcho-Communist Revolt",artist:"Acrania",album:"Totalitarian Dystopia",genre:"Deathcore",dur:"3:59",sid:""},
+  {id:91,title:"Castle Spire",artist:"Curta'n Wall",album:"Siege Obsessed",genre:"Dungeon Metal",dur:"3:44",sid:"1QblW791v9gnIVioyy3VwH"},
+  {id:92,title:"Siege Tower",artist:"Curta'n Wall",album:"Siege Obsessed",genre:"Dungeon Metal",dur:"4:02",sid:"3CAM998h5kb7EiTtKXmRpe"},
+  {id:93,title:"Siege Ubsessed!",artist:"Curta'n Wall",album:"Siege Obsessed",genre:"Dungeon Metal",dur:"3:58",sid:"5pQIogTyb0nc7wtMg4g8jR"},
+  {id:94,title:"Fear of God",artist:"Curta'n Wall",album:"Siege Obsessed",genre:"Dungeon Metal",dur:"4:15",sid:"1IrIicuh5x0844lgrqT8Ck"},
+  {id:95,title:"Drawbridge Down",artist:"Curta'n Wall",album:"Siege Obsessed",genre:"Dungeon Metal",dur:"3:29",sid:""},
+  {id:96,title:"Tavern",artist:"Netherwalker",album:"From Depths Below",genre:"Dungeon Metal",dur:"5:11",sid:"51Qh1B7K8b2Vca6u7Xxqzr"},
+  {id:97,title:"Thine King Weeps for Mercy",artist:"Netherwalker",album:"From Depths Below",genre:"Dungeon Metal",dur:"4:44",sid:"51wrJZ4Gd4zQjQpwdQghtP"},
+  {id:98,title:"Dragon's Lair Ballad",artist:"Netherwalker",album:"From Depths Below",genre:"Dungeon Metal",dur:"6:02",sid:""},
+  {id:99,title:"백두의 소환",artist:"구룡",album:"조선의 흑마법",genre:"Black Metal",dur:"4:33",sid:"2BW7t8HYWIJia8PxQM5LR0"},
+  {id:100,title:"왕조의 용맹",artist:"구룡",album:"조선의 흑마법",genre:"Black Metal",dur:"3:58",sid:"2RJwokygXB0CsC01AOPOXO"},
+  {id:101,title:"혈전의 서",artist:"구룡",album:"조선의 흑마법",genre:"Black Metal",dur:"4:11",sid:""},
+  {id:102,title:"산신의 분노",artist:"구룡",album:"조선의 흑마법",genre:"Black Metal",dur:"5:22",sid:""},
+  {id:103,title:"BLUEPRINTS FOR IDOL GENOCIDE",artist:"PSYCHO-FRAME",album:"Idol Genocide",genre:"Metalcore",dur:"3:44",sid:"1n6dtMbymNxxboigETUwnP"},
+  {id:104,title:"Razorwire Manifesto",artist:"PSYCHO-FRAME",album:"Idol Genocide",genre:"Metalcore",dur:"3:18",sid:""},
+  {id:105,title:"Kill the Icon",artist:"PSYCHO-FRAME",album:"Idol Genocide",genre:"Metalcore",dur:"4:02",sid:""},
+  {id:106,title:"Linda Claire",artist:"Fleshwater",album:"We'll All Be Hurt",genre:"Post-Hardcore",dur:"3:22",sid:"6WQRP39DLPqx95WECuS4Ty"},
+  {id:107,title:"Kiss the Ladder",artist:"Fleshwater",album:"We'll All Be Hurt",genre:"Post-Hardcore",dur:"3:44",sid:"41QBT1Al5RQ9u9UIHOuXnj"},
+  {id:108,title:"Wretch",artist:"Fleshwater",album:"We'll All Be Hurt",genre:"Post-Hardcore",dur:"4:01",sid:""},
+  {id:109,title:"Bitter",artist:"Fleshwater",album:"We'll All Be Hurt",genre:"Post-Hardcore",dur:"3:55",sid:""},
+  {id:110,title:"Drain You Dry",artist:"Fleshwater",album:"We'll All Be Hurt",genre:"Post-Hardcore",dur:"4:22",sid:""},
+  {id:111,title:"Pull Harder on the Strings",artist:"Trivium",album:"Ascendancy",genre:"Metalcore",dur:"4:35",sid:""},
+  {id:112,title:"A Gunshot to the Head of Trepidation",artist:"Trivium",album:"Ascendancy",genre:"Metalcore",dur:"4:02",sid:""},
+  {id:113,title:"Pandemonium",artist:"Parkway Drive",album:"Atlas",genre:"Metalcore",dur:"4:02",sid:""},
+  {id:114,title:"Wild Eyes",artist:"Parkway Drive",album:"Atlas",genre:"Metalcore",dur:"3:48",sid:""},
+  {id:115,title:"Sleepwalker",artist:"Parkway Drive",album:"Deep Blue",genre:"Metalcore",dur:"4:11",sid:""},
+  {id:116,title:"Carrion",artist:"Parkway Drive",album:"Killing with a Smile",genre:"Metalcore",dur:"3:22",sid:""},
+  {id:117,title:"The Great Southern Trendkill",artist:"Pantera",album:"The Great Southern Trendkill",genre:"Groove Metal",dur:"5:02",sid:""},
+  {id:118,title:"Walk",artist:"Pantera",album:"Vulgar Display of Power",genre:"Groove Metal",dur:"5:16",sid:""},
+  {id:119,title:"Fucking Hostile",artist:"Pantera",album:"Vulgar Display of Power",genre:"Groove Metal",dur:"2:50",sid:""},
+  {id:120,title:"Cemetery Gates",artist:"Pantera",album:"Cowboys from Hell",genre:"Groove Metal",dur:"7:03",sid:""},
+  {id:121,title:"Raining Blood",artist:"Slayer",album:"Reign in Blood",genre:"Thrash Metal",dur:"4:17",sid:""},
+  {id:122,title:"Angel of Death",artist:"Slayer",album:"Reign in Blood",genre:"Thrash Metal",dur:"4:51",sid:""},
+  {id:123,title:"Dead Skin Mask",artist:"Slayer",album:"Seasons in the Abyss",genre:"Thrash Metal",dur:"5:38",sid:""},
+  {id:124,title:"Seasons in the Abyss",artist:"Slayer",album:"Seasons in the Abyss",genre:"Thrash Metal",dur:"6:10",sid:""},
+  {id:125,title:"Hell Awaits",artist:"Slayer",album:"Hell Awaits",genre:"Thrash Metal",dur:"6:14",sid:""},
+  {id:126,title:"Battery",artist:"Metallica",album:"Master of Puppets",genre:"Thrash Metal",dur:"5:13",sid:""},
+  {id:127,title:"Master of Puppets",artist:"Metallica",album:"Master of Puppets",genre:"Thrash Metal",dur:"8:36",sid:""},
+  {id:128,title:"Creeping Death",artist:"Metallica",album:"Ride the Lightning",genre:"Thrash Metal",dur:"6:36",sid:""},
+  {id:129,title:"For Whom the Bell Tolls",artist:"Metallica",album:"Ride the Lightning",genre:"Thrash Metal",dur:"5:10",sid:""},
+  {id:130,title:"Blackened",artist:"Metallica",album:"...And Justice for All",genre:"Thrash Metal",dur:"6:40",sid:""},
+  {id:131,title:"...And Justice for All",artist:"Metallica",album:"...And Justice for All",genre:"Thrash Metal",dur:"9:44",sid:""},
+  {id:132,title:"Peace Sells",artist:"Megadeth",album:"Peace Sells...",genre:"Thrash Metal",dur:"4:09",sid:""},
+  {id:133,title:"Holy Wars...The Punishment Due",artist:"Megadeth",album:"Rust in Peace",genre:"Thrash Metal",dur:"6:36",sid:""},
+  {id:134,title:"Tornado of Souls",artist:"Megadeth",album:"Rust in Peace",genre:"Thrash Metal",dur:"5:22",sid:""},
+  {id:135,title:"Hangar 18",artist:"Megadeth",album:"Rust in Peace",genre:"Thrash Metal",dur:"5:14",sid:""},
+  {id:136,title:"In My Darkest Hour",artist:"Megadeth",album:"So Far, So Good... So What!",genre:"Thrash Metal",dur:"6:16",sid:""},
+  {id:137,title:"Dyers Eve",artist:"Metallica",album:"...And Justice for All",genre:"Thrash Metal",dur:"5:11",sid:""},
+  {id:138,title:"Seek & Destroy",artist:"Metallica",album:"Kill 'Em All",genre:"Thrash Metal",dur:"6:55",sid:""},
+  {id:139,title:"Symptom of the Universe",artist:"Black Sabbath",album:"Sabotage",genre:"Doom Metal",dur:"6:28",sid:""},
+  {id:140,title:"Black Sabbath",artist:"Black Sabbath",album:"Black Sabbath",genre:"Doom Metal",dur:"6:17",sid:""},
+  {id:141,title:"Iron Man",artist:"Black Sabbath",album:"Paranoid",genre:"Doom Metal",dur:"5:58",sid:""},
+  {id:142,title:"War Pigs",artist:"Black Sabbath",album:"Paranoid",genre:"Doom Metal",dur:"7:59",sid:""},
+  {id:143,title:"Hand of Doom",artist:"Black Sabbath",album:"Paranoid",genre:"Doom Metal",dur:"7:07",sid:""},
+  {id:144,title:"Funeralopolis",artist:"Electric Wizard",album:"Dopethrone",genre:"Doom Metal",dur:"11:09",sid:""},
+  {id:145,title:"Dopethrone",artist:"Electric Wizard",album:"Dopethrone",genre:"Doom Metal",dur:"10:44",sid:""},
+  {id:146,title:"Witchcult Today",artist:"Electric Wizard",album:"Witchcult Today",genre:"Doom Metal",dur:"10:22",sid:""},
+  {id:147,title:"Freezing Moon",artist:"Mayhem",album:"De Mysteriis Dom Sathanas",genre:"Black Metal",dur:"5:37",sid:""},
+  {id:148,title:"Funeral Fog",artist:"Mayhem",album:"De Mysteriis Dom Sathanas",genre:"Black Metal",dur:"5:56",sid:""},
+  {id:149,title:"De Mysteriis Dom Sathanas",artist:"Mayhem",album:"De Mysteriis Dom Sathanas",genre:"Black Metal",dur:"5:46",sid:""},
+  {id:150,title:"Transilvanian Hunger",artist:"Darkthrone",album:"Transilvanian Hunger",genre:"Black Metal",dur:"5:29",sid:""},
+  {id:151,title:"In the Shadow of the Horns",artist:"Darkthrone",album:"Transilvanian Hunger",genre:"Black Metal",dur:"4:14",sid:""},
+  {id:152,title:"A Blaze in the Northern Sky",artist:"Darkthrone",album:"A Blaze in the Northern Sky",genre:"Black Metal",dur:"6:28",sid:""},
+  {id:153,title:"Det Som Engang Var",artist:"Burzum",album:"Det Som Engang Var",genre:"Black Metal",dur:"14:04",sid:""},
+  {id:154,title:"Dunkelheit",artist:"Burzum",album:"Filosofem",genre:"Black Metal",dur:"8:40",sid:""},
+  {id:155,title:"I Am the Black Wizards",artist:"Emperor",album:"In the Nightside Eclipse",genre:"Black Metal",dur:"8:01",sid:""},
+  {id:156,title:"Into the Infinity of Thoughts",artist:"Emperor",album:"In the Nightside Eclipse",genre:"Black Metal",dur:"9:25",sid:""},
+  {id:157,title:"Ye Entrancemperium",artist:"Emperor",album:"In the Nightside Eclipse",genre:"Black Metal",dur:"6:05",sid:""},
+];
+
+// ══════════════════════════════
+//  STATE
+// ══════════════════════════════
+let filtered=[...TRACKS], curIdx=-1, playing=false, shuffle=false, repeat=false;
+let timer=null, pos=0, dur=0, wvTimers=[];
+
+// ══════════════════════════════
+//  BUILD GENRE CHIPS
+// ══════════════════════════════
+function buildGenres(){
+  const genres=['All',...new Set(TRACKS.map(t=>t.genre))].sort((a,b)=>a==='All'?-1:a.localeCompare(b));
+  const el=document.getElementById('genres');
+  genres.forEach(g=>{
+    const b=document.createElement('button');
+    b.className='gc'+(g==='All'?' on':'');
+    b.textContent=g.toUpperCase(); b.dataset.g=g;
+    b.onclick=()=>{
+      document.querySelectorAll('.gc').forEach(c=>c.classList.remove('on'));
+      b.classList.add('on');
+      doFilter(g, document.getElementById('srch').value);
+    };
+    el.appendChild(b);
+  });
+}
+
+// ══════════════════════════════
+//  BUILD WAVEFORM
+// ══════════════════════════════
+function buildWave(){
+  const el=document.getElementById('wave');
+  el.innerHTML='';
+  for(let i=0;i<44;i++){
+    const b=document.createElement('div');
+    b.className='wb'; b.style.height='3px';
+    el.appendChild(b);
+  }
+}
+
+function animWave(on){
+  wvTimers.forEach(clearInterval); wvTimers=[];
+  const bars=document.querySelectorAll('.wb');
+  if(!on){bars.forEach(b=>b.style.height='3px');return;}
+  bars.forEach((b,i)=>{
+    const iv=setInterval(()=>{
+      b.style.height=(on?3+Math.random()*28:3)+'px';
+      b.style.opacity=(0.4+Math.random()*0.6).toString();
+    },60+Math.random()*100);
+    wvTimers.push(iv);
+  });
+}
+
+// ══════════════════════════════
+//  RENDER
+// ══════════════════════════════
+function render(){
+  const list=document.getElementById('tlist');
+  list.innerHTML='';
+  if(!filtered.length){
+    list.innerHTML='<div class="empty">☠ NO TRACKS FOUND — THE ABYSS YIELDS NOTHING ☠</div>';
+    document.getElementById('srch-count').textContent='0 tracks';
+    return;
+  }
+  document.getElementById('srch-count').textContent=`${filtered.length} tracks`;
+  document.getElementById('stat-line').textContent=`${filtered.length} / ${TRACKS.length} TRACKS`;
+
+  filtered.forEach((t,i)=>{
+    const gi=TRACKS.indexOf(t);
+    const row=document.createElement('div');
+    row.className='tr'+(gi===curIdx?' active':'');
+    row.innerHTML=`
+      <div class="t-num">
+        <span class="num-val">${String(i+1).padStart(2,'0')}</span>
+        <div class="bars"><div class="bar-b"></div><div class="bar-b"></div><div class="bar-b"></div></div>
+      </div>
+      <div class="t-name"><span class="pi">▶</span>${t.title}</div>
+      <div class="t-art">${t.artist}</div>
+      <div class="t-alb">${t.album}</div>
+      <div class="t-gnr">⛧ ${t.genre}</div>
+      <div class="t-dur">${t.dur}</div>`;
+    row.onclick=()=>play(gi);
+    list.appendChild(row);
+  });
+}
+
+// ══════════════════════════════
+//  SPOTIFY EMBED
+// ══════════════════════════════
+function loadSpotifyEmbed(t){
+  const dock = document.getElementById('sp-dock');
+  const body = document.getElementById('sp-body');
+
+  if(t.sid){
+    // compact=1 gives the small single-track embed (80px tall)
+    body.innerHTML = `<iframe id="sp-iframe"
+      src="https://open.spotify.com/embed/track/${t.sid}?utm_source=generator&theme=0"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"></iframe>`;
+    document.getElementById('sptfy-btn').href = `https://open.spotify.com/track/${t.sid}`;
+  } else {
+    body.innerHTML = `<div class="no-spotify">
+      ☠ NO SPOTIFY ID FOR THIS TRACK<br>
+      <a href="https://open.spotify.com/playlist/7J7lEoLhaMM5LroJDmeSGZ" target="_blank">Browse full playlist →</a>
+    </div>`;
+    document.getElementById('sptfy-btn').href = 'https://open.spotify.com/playlist/7J7lEoLhaMM5LroJDmeSGZ';
+  }
+  dock.classList.add('open');
+}
+
+// ══════════════════════════════
+//  PLAYBACK
+// ══════════════════════════════
+function play(gi){
+  curIdx=gi;
+  const t=TRACKS[gi];
+  playing=true;
+  clearInterval(timer);
+
+  document.getElementById('np-song').textContent=t.title;
+  document.getElementById('np-artist').textContent=t.artist;
+  document.getElementById('np-album').textContent=t.album;
+  document.getElementById('np-genre').textContent='⛧ '+t.genre;
+  document.getElementById('np-status').textContent='NOW PLAYING';
+  document.getElementById('np-led').classList.remove('off');
+  document.getElementById('b-play').textContent='⏸';
+  document.getElementById('disc').classList.add('spin');
+
+  loadSpotifyEmbed(t);
+
+  const pts=t.dur.split(':').map(Number);
+  dur=pts[0]*60+(pts[1]||0); pos=0;
+  document.getElementById('t-tot').textContent=t.dur;
+  document.getElementById('prog-inner').style.width='0%';
+  document.getElementById('t-cur').textContent='0:00';
+
+  timer=setInterval(tick,1000);
+  animWave(true);
+  render();
+
+  // scroll track into view
+  const activeRow = document.querySelector('.tr.active');
+  if(activeRow) activeRow.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function tick(){
+  if(!playing)return;
+  pos++;
+  if(pos>=dur){advance();return;}
+  const p=(pos/dur)*100;
+  document.getElementById('prog-inner').style.width=p+'%';
+  document.getElementById('t-cur').textContent=`${Math.floor(pos/60)}:${String(pos%60).padStart(2,'0')}`;
+}
+
+function advance(){
+  if(repeat){play(curIdx);return;}
+  if(shuffle){play(Math.floor(Math.random()*TRACKS.length));return;}
+  if(curIdx<TRACKS.length-1) play(curIdx+1); else stopAll();
+}
+
+function stopAll(){
+  playing=false; clearInterval(timer);
+  document.getElementById('b-play').textContent='▶';
+  document.getElementById('np-status').textContent='IDLE';
+  document.getElementById('np-led').classList.add('off');
+  document.getElementById('disc').classList.remove('spin');
+  animWave(false); render();
+}
+
+function doFilter(genre,search){
+  const q=(search||'').toLowerCase();
+  filtered=TRACKS.filter(t=>{
+    const gm=genre==='All'||t.genre===genre;
+    const sm=!q||[t.title,t.artist,t.album,t.genre].some(s=>s.toLowerCase().includes(q));
+    return gm&&sm;
+  });
+  render();
+}
+
+// ══════════════════════════════
+//  EVENTS
+// ══════════════════════════════
+document.getElementById('sp-close').onclick=()=>{
+  document.getElementById('sp-dock').classList.remove('open');
+  document.getElementById('sp-body').innerHTML='';
+};
+document.getElementById('b-play').onclick=()=>{
+  if(curIdx===-1){if(filtered.length)play(TRACKS.indexOf(filtered[0]));return;}
+  playing=!playing;
+  document.getElementById('b-play').textContent=playing?'⏸':'▶';
+  document.getElementById('np-status').textContent=playing?'NOW PLAYING':'PAUSED';
+  document.getElementById('np-led').classList.toggle('off',!playing);
+  document.getElementById('disc').classList.toggle('spin',playing);
+  animWave(playing);
+  // re-open dock if resuming
+  if(playing && curIdx>=0) loadSpotifyEmbed(TRACKS[curIdx]);
+};
+document.getElementById('b-next').onclick=()=>{
+  if(shuffle)play(Math.floor(Math.random()*TRACKS.length));
+  else if(curIdx<TRACKS.length-1)play(curIdx+1);
+};
+document.getElementById('b-prev').onclick=()=>{
+  if(pos>3){pos=0;document.getElementById('prog-inner').style.width='0%';return;}
+  if(curIdx>0)play(curIdx-1);
+};
+document.getElementById('b-shuf').onclick=function(){shuffle=!shuffle;this.classList.toggle('on',shuffle);};
+document.getElementById('b-rep').onclick=function(){repeat=!repeat;this.classList.toggle('on',repeat);};
+document.getElementById('prog-outer').onclick=e=>{
+  if(curIdx===-1)return;
+  const r=e.currentTarget.getBoundingClientRect();
+  pos=Math.floor(((e.clientX-r.left)/r.width)*dur);
+  document.getElementById('prog-inner').style.width=((pos/dur)*100)+'%';
+  document.getElementById('t-cur').textContent=`${Math.floor(pos/60)}:${String(pos%60).padStart(2,'0')}`;
+};
+document.getElementById('vol').oninput=function(){document.getElementById('vol-pct').textContent=Math.round(this.value*100)+'%';};
+document.getElementById('srch').oninput=function(){
+  const ag=document.querySelector('.gc.on')?.dataset.g||'All';
+  doFilter(ag,this.value);
+};
+
+// ══════════════════════════════
+//  INIT
+// ══════════════════════════════
+buildGenres();
+buildWave();
+render();
+</script>
+</body>
+</html>
